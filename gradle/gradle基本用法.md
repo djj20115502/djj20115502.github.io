@@ -1,3 +1,6 @@
+---
+layout: post
+---
 # gradle基本用法总结
 
 # Gradle生命周期

@@ -1,3 +1,6 @@
+---
+layout: default
+---
 # gradle学习笔记
 
 # Gradle生命周期
