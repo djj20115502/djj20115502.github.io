@@ -1,0 +1,19 @@
+<div id="sidebar">
+
+	<!-- Sidebar -->
+	{% for post in site.posts  %}
+		<section>
+		    <a href="{{ site.baseurl }}{{ post.url }}" class="button">{{ post.title }}</a>
+<br>
+ 			{% if post.intro %}
+						{{ post.intro }}
+          
+
+            {% endif %}
+ 
+			<footer>
+			</footer>
+		</section>
+	{% endfor %}
+	
+</div>

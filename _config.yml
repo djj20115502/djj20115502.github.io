@@ -1,14 +1,16 @@
-# Site settings
-title: DJJ
-email: 361170803@qq.com
-description: > # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
-baseurl: "" # the subpath of your site, e.g. /blog/
-url: "http://yourdomain.com" # the base hostname & protocol for your site
-twitter_username: djj_null
-github_username:  djj20115502
-
-# Build settings
-markdown: kramdown
+name: Arcana
+description: “”
+paginate: 10
+baseurl: '/Arcana-Jekyll-Theme'
+icon_01: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_02: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_03: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_04: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_05: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_06: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_07: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_08: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_09: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+icon_00: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+home_bg: /assets/images/banner.jpg
+test: 1,2,3

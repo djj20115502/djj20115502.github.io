@@ -1,0 +1,89 @@
+---
+title: Blog
+layout: default
+---
+
+<!-- Main -->
+	<section class="wrapper style1">
+		<div class="container">
+			<div id="content">
+				<div class="row">
+					<div class="12u">
+
+						<!-- Blog -->
+							<section>
+								<header class="major">
+									<h2>The Blog</h2>
+								</header>
+								<!-- 第一步得到分组 ---s--- -->
+								{%  assign class = "" %}
+							 	{% for pp in site.posts offset: 0 limit: 10 %}
+                                      {% assign clname = pp.path   | split: '/' %}
+ 								    {% if class contains clname[1] %}
+									{% else %}
+									    {% if class =="" %}
+										    {%  assign class =   clname[1] %}
+										{% else %}
+									        {%  assign class = class |  append: "/" |  append: clname[1] %}
+										{% endif %}
+									{% endif %}
+ 								{% endfor %}
+								{% assign clname = class | split: '/' %}
+								<!-- 第一步得到分组 ---e--- -->
+								
+			                {% for class in clname %}
+								    <div class="row">
+										<section class="12u">
+											<div class="box post">
+ 
+							{%  assign picint = class | size | modulo:10 %}			 
+							{% case picint  %}
+                                {% when 0 %}
+                                    {%  assign pic = site.icon_00 %}
+                                {% when 1 %}
+                                    {%  assign pic = site.icon_01 %}
+                                {% when 2 %}
+                                    {%  assign pic = site.icon_02 %}
+	                            {% when 3 %}
+                                    {%  assign pic = site.icon_03 %}
+						        {% when 4 %}
+                                    {%  assign pic = site.icon_04 %}
+						        {% when 5 %}
+                                    {%  assign pic = site.icon_05 %}
+							    {% when 6 %}
+                                    {%  assign pic = site.icon_06 %}
+							    {% when 7 %}
+                                    {%  assign pic = site.icon_07 %}
+							    {% when 8 %}
+                                    {%  assign pic = site.icon_08 %}
+							    {% when 9 %}
+                                    {%  assign pic = site.icon_09 %}
+								{% else %}
+								    {%  assign pic = site.icon_09 %}
+                            {% endcase %}
+ 							 	<h2> {{ class }}</h2>
+
+								<a href="#" class="image left"><img src="{{ pic }}  " alt=""></a>
+												<div class="inner">
+											{% for post in site.posts offset  %}
+								                  {% assign clname = post.path   | split: '/' %}
+									            {% if class == clname[1] %}
+							           	             <h3><a href="{{ site.baseurl }}{{ post.url }}">{{post.title}} </a></h3>
+									            {% endif %}
+									  
+								            {% endfor %}													
+													 
+												</div>
+											</div>
+
+										</section>
+									</div>
+								
+								{% endfor %}
+								
+							</section>
+
+					</div>
+				</div>
+		</div>
+	</section>

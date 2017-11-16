@@ -1,0 +1,65 @@
+ 
+	{% include header.html %}
+
+<!-- Main -->
+	<section class="wrapper style1">
+		<div class="container">
+			<div class="row double">
+				<div class="4u">
+					{% include sidebar.html %}
+				</div>
+				<div class="8u skel-cell-important">
+					<div id="content">
+
+						<!-- Content -->
+					
+							 	<!-- Blog -->
+				<section>
+					<header class="major">
+						<h2>{{ page.title }}</h2>
+						<p>Posted {{ page.date | date_to_string }}</p>
+					</header>
+					 
+					<div class="row">
+						<div class="8u -2u">
+							<section class="box">
+							{% if page.featured %}
+                                 {%  assign pic = page.featured%}
+ 						    {% else %}
+							{%  assign picint = page.title | size | modulo:10 %}			 
+							{% case picint  %}
+                                {% when 0 %}
+                                    {%  assign pic = site.icon_00 %}
+                                {% when 1 %}
+                                    {%  assign pic = site.icon_01 %}
+                                {% when 2 %}
+                                    {%  assign pic = site.icon_02 %}
+	                            {% when 3 %}
+                                    {%  assign pic = site.icon_03 %}
+						        {% when 4 %}
+                                    {%  assign pic = site.icon_04 %}
+						        {% when 5 %}
+                                    {%  assign pic = site.icon_05 %}
+							    {% when 6 %}
+                                    {%  assign pic = site.icon_06 %}
+							    {% when 7 %}
+                                    {%  assign pic = site.icon_07 %}
+							    {% when 8 %}
+                                    {%  assign pic = site.icon_08 %}
+							    {% when 9 %}
+                                    {%  assign pic = site.icon_09 %}
+                                {% endcase %}
+ 							{% endif %}
+							<a href="#" class="image left"><img src="{{ pic }}" alt="" /></a>
+				            {{ page.content }}
+							</section>
+						</div>
+					</div>
+					
+				</section>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>			
