@@ -1,6 +1,6 @@
 ---
 title: hellow
-layout: leftsidebar
+layout: blog
 ---
 
 # 测试一下

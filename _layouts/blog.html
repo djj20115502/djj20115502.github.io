@@ -17,14 +17,16 @@
 				<section>
 					<header class="major">
 						<h2>{{ page.title }}</h2>
+						{% if  page.date %}
 						<p>Posted {{ page.date | date_to_string }}</p>
+						{% endif %}
 					</header>
 					 
 					<div class="row">
 						<div class="8u -2u">
 							<section class="box">
-							{% if page.featured %}
-                                 {%  assign pic = page.featured%}
+							{% if page.icon %}
+                                 {%  assign pic = page.icon %}
  						    {% else %}
 							{%  assign picint = page.title | size | modulo:10 %}			 
 							{% case picint  %}

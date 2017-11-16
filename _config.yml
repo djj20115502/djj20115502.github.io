@@ -1,7 +1,7 @@
 name: Arcana
-description: “”
+description: "null"
 paginate: 10
-baseurl: '/Arcana-Jekyll-Theme'
+baseurl: ''
 icon_01: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
 icon_02: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
 icon_03: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
@@ -12,5 +12,5 @@ icon_07: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.j
 icon_08: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
 icon_09: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
 icon_00: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
-home_bg: /assets/images/banner.jpg
-test: 1,2,3
+home_bg: http://mpic.tiankong.com/f51/b6e/f51b6eb12f743834d3089dd42de651f3/640.jpg
+ 
