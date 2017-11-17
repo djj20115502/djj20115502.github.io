@@ -17,7 +17,7 @@ layout: default
 								</header>
 								<!-- 第一步得到分组 ---s--- -->
 								{%  assign class = "" %}
-							 	{% for pp in site.posts offset: 0 limit: 10 %}
+							 	{% for pp in site.posts  %}
                                       {% assign clname = pp.path   | split: '/' %}
  								    {% if class contains clname[1] %}
 									{% else %}

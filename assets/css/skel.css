@@ -213,7 +213,7 @@
 
 			.row.double {
 				/* margin-left: -(gutters * 2) */
-				margin-left: -80px;
+				margin-left: -1px;
 			}
 			
 			.row + .row.uniform.double > * {
