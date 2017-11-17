@@ -1,5 +1,5 @@
 name: Arcana
-markdown: kramdown
+markdown: redcarpet
 description: "null"
 paginate: 10
 baseurl: ''
