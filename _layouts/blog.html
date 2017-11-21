@@ -1,14 +1,14 @@
 {% include header.html %}
 
 <!-- Main -->
-<section class="wrapper style1">
-    <div class="container">
-        <div class="row double">
+<section class="wrapper style1" style="background:#CCCCCC">
+    <div class="container" >
+        <div class="row double" >
 
             {% include sidebar.html %}
 
-            <div class="8u skel-cell-important">
-                <div id="content">
+            <div class="8u skel-cell-important" style="background:#F4F4F4;padding:2%" >
+                <div id="content"   >
 
                     <!-- Content -->
 
@@ -21,8 +21,7 @@
                             {% endif %}
                         </header>
 
-                        <div class="row">
-                            <div class="8u -2u">
+                        <div     >
                                 <section class="box">
                                     {% if page.icon %}
                                     {% assign pic = page.icon %}
@@ -52,15 +51,15 @@
                                     {% endcase %}
                                     {% endif %}
 									<p style="text-align:center;"> <a href="#" class="image" style="text-align:center;"><img src="{{ pic }}" alt=""/></a></p>
-                      
-                                    {{ page.content }}
+								 
+                                    {{ page.content }} 
                                 </section>
-                            </div>
-                        </div>
-
+							
+						 </div>
+						  
                     </section>
 
-                </div>
+              
             </div>
         </div>
     </div>
