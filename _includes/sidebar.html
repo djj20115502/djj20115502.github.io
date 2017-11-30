@@ -2,8 +2,8 @@
 
 	<!-- Sidebar -->
 	{% for post in site.posts  %}
-		<section>
-		    <a href="{{ site.baseurl }}{{ post.url }}" class="button">{{ post.title }}</a>
+		<section style=" padding:2%">
+		    <a href="{{ site.baseurl }}{{ post.url }}" class="button" style="width:100%" >{{ post.title }}</a>
 <br>
  			{% if post.intro %}
 						{{ post.intro }}
