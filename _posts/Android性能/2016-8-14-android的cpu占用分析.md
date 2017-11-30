@@ -1,6 +1,6 @@
 ---
 title: android cpu占用分析  
-icon:https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=453424286,202850325&fm=11&gp=0.jpg 
+icon: https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=453424286,202850325&fm=11&gp=0.jpg 
 intro: 通过命令行分析  
 layout: blog
 ---
