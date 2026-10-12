@@ -108,7 +108,7 @@ if (Get-ScheduledTask -TaskName 'IPv6-Reporter' -ErrorAction SilentlyContinue) {
 }
 
 Write-Host ''
-Write-Host '正在立即触发一次以验证（首次需要克隆仓库，可能要几十秒）……' -ForegroundColor Cyan
+Write-Host '正在立即触发一次以验证（需要连 GitHub，可能要几十秒）……' -ForegroundColor Cyan
 Start-ScheduledTask -TaskName $TaskName
 for ($i = 0; $i -lt 60; $i++) {
     Start-Sleep -Seconds 2

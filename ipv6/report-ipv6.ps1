@@ -5,9 +5,8 @@
 .DESCRIPTION
     由计划任务定时调用（见 install-task.ps1），也可以手动运行。
 
-    为了不碰你日常写博客的工作区（未提交的改动、本地还没推的提交），
-    提交是在一个独立的浅克隆里完成的：%LOCALAPPDATA%\ipv6-reporter\repo
-    远程地址取自本脚本所在仓库的 origin。
+    直接使用本脚本所在的仓库，但不碰你日常写博客的工作区：提交用 git 底层命令基于
+    origin 的最新提交生成，只改 ipv6/data.json，推送后本地分支只是落后，git pull 即可。
 
     地址没变时只做本地比对，不联网、不提交；每 24 小时会跟远端核对一次。
     配置读取同目录 config.json（不入库），其中 password 必填，字段见 config.example.json。
@@ -31,7 +30,6 @@ $configPath = Join-Path $scriptDir 'config.json'
 $appData = $env:LOCALAPPDATA
 if (-not $appData) { $appData = [Environment]::GetFolderPath('LocalApplicationData') }
 $stateDir  = Join-Path $appData 'ipv6-reporter'
-$workDir   = Join-Path $stateDir 'repo'
 $stateFile = Join-Path $stateDir 'state.json'
 $logFile   = Join-Path $stateDir 'report.log'
 if (-not (Test-Path $stateDir)) { New-Item -ItemType Directory -Path $stateDir -Force | Out-Null }
@@ -212,18 +210,33 @@ function Get-LocalIPv4 {
     return $v4[0].IPAddress
 }
 
-# ------------------------------------------------------------ 工作副本
-function Sync-WorkRepo {
-    param([string]$RemoteUrl)
-    if (-not (Test-Path (Join-Path $workDir '.git'))) {
-        if (Test-Path $workDir) { Remove-Item $workDir -Recurse -Force }
-        Write-Log "首次运行，浅克隆仓库到 $workDir"
-        Invoke-Git clone --depth 1 --single-branch --branch $branch $RemoteUrl $workDir | Out-Null
-        return
+# ------------------------------------------------------------ 提交（不碰工作区）
+# 直接在本仓库里用 git 底层命令造提交：基于 origin/<branch>，用一个临时 index 只替换
+# ipv6/data.json，生成提交后直接推到远端分支。工作区、HEAD、本地分支和暂存区都不动，
+# 所以你没提交的改动、没推送的提交（比如写了一半的文章）都不会被带上去。
+# 返回值：$null 表示内容没变无需提交；否则返回新提交的 sha
+function New-DataCommit {
+    param([string]$Base, [string]$RelPath, [hashtable]$Report, [string]$Password)
+
+    $tmpFile = Join-Path $stateDir 'data.json.tmp'
+    $old = ''
+    try { $old = (Invoke-Git -C $sourceRepo show "${Base}:$RelPath") -join "`n" } catch { }  # 远端还没有这个文件时为空
+    [IO.File]::WriteAllText($tmpFile, $old, $utf8NoBom)
+
+    if (-not (Update-DataFile -Path $tmpFile -Report $Report -Password $Password)) { return $null }
+
+    $blob = (Invoke-Git -C $sourceRepo hash-object -w --no-filters $tmpFile | Select-Object -First 1).Trim()
+    $env:GIT_INDEX_FILE = Join-Path $stateDir 'index.tmp'
+    try {
+        Invoke-Git -C $sourceRepo read-tree $Base | Out-Null
+        Invoke-Git -C $sourceRepo update-index --add --cacheinfo "100644,$blob,$RelPath" | Out-Null
+        $tree = (Invoke-Git -C $sourceRepo write-tree | Select-Object -First 1).Trim()
+    } finally {
+        Remove-Item Env:\GIT_INDEX_FILE
+        Remove-Item (Join-Path $stateDir 'index.tmp') -ErrorAction SilentlyContinue
     }
-    Invoke-Git -C $workDir remote set-url origin $RemoteUrl | Out-Null
-    Invoke-Git -C $workDir fetch --depth 1 origin $branch | Out-Null
-    Invoke-Git -C $workDir reset --hard FETCH_HEAD | Out-Null
+    # 提交信息是公开的，不能带主机名和地址
+    return (Invoke-Git -C $sourceRepo commit-tree $tree -p $Base -m 'ipv6: update' | Select-Object -First 1).Trim()
 }
 
 # 把本机这条记录写进 data.json；内容没变返回 $false
@@ -281,7 +294,7 @@ function Update-DataFile {
     $plain = ConvertTo-Json -InputObject $out -Depth 8 -Compress
     $box = Protect-Text -Text $plain -Password $Password
     $json = ConvertTo-Json -InputObject $box
-    [IO.File]::WriteAllText($Path, $json + "`n", $utf8NoBom)
+    [IO.File]::WriteAllText($Path, ($json -replace "`r`n", "`n") + "`n", $utf8NoBom)
     return $true
 }
 
@@ -331,25 +344,23 @@ if (-not $Force -and $state -and $state.fingerprint -eq $fingerprint -and $recen
     exit 0
 }
 
-# 3. 同步工作副本 → 改 data.json → 提交 → 推送；推送被拒（别的机器刚推过）就重来
+# 3. 拉取远端 → 基于远端最新提交生成新提交 → 推送；推送被拒（别的机器刚推过）就重来
 try {
-    $remoteUrl = (Invoke-Git -C $sourceRepo remote get-url origin | Select-Object -First 1).Trim()
     $relPath = 'ipv6/data.json'
     $pushed = $false
     $changed = $false
 
     for ($round = 1; $round -le 3 -and -not $pushed; $round++) {
-        Sync-WorkRepo -RemoteUrl $remoteUrl
-        $dataPath = Join-Path $workDir $relPath
-        $changed = Update-DataFile -Path $dataPath -Report $report -Password $password
+        Invoke-Git -C $sourceRepo fetch -q origin $branch | Out-Null
+        $base = (Invoke-Git -C $sourceRepo rev-parse "refs/remotes/origin/$branch" | Select-Object -First 1).Trim()
+        $commit = New-DataCommit -Base $base -RelPath $relPath -Report $report -Password $password
+        $changed = [bool]$commit
         if (-not $changed) { $pushed = $true; break }
 
-        Invoke-Git -C $workDir add -- $relPath | Out-Null
-        # 提交信息是公开的，不能带主机名和地址
-        $msg = 'ipv6: update'
-        Invoke-Git -C $workDir commit -q -m $msg -- $relPath | Out-Null
         try {
-            Invoke-Git -C $workDir push origin "HEAD:$branch" | Out-Null
+            Invoke-Git -C $sourceRepo push -q origin "${commit}:refs/heads/$branch" | Out-Null
+            # 顺手更新本地的远端跟踪分支，git status 能看到落后了几个提交
+            Invoke-Git -C $sourceRepo update-ref "refs/remotes/origin/$branch" $commit | Out-Null
             $pushed = $true
         } catch {
             Write-Log "第 $round 次推送失败，将重新同步后再试：$($_.Exception.Message)" 'WARN'

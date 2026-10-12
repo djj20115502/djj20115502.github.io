@@ -7,7 +7,7 @@ GitHub Pages 自动发布。打开 <https://djj20115502.github.io/ipv6/>，输�
 Windows 计划任务（每 5 分钟）
   report-ipv6.ps1 采集公网 IPv6
     └─ 与上次结果相同 → 结束（不联网）
-    └─ 变化了 → 独立浅克隆里解密 data.json → 更新本机记录 → 重新加密 → commit → push
+    └─ 变化了 → fetch → 解密远端 data.json → 更新本机记录 → 重新加密 → 生成提交 → push
                                               └─▶ GitHub Pages → ipv6/index.html 输入密码 → 本地解密展示
 ```
 
@@ -39,8 +39,10 @@ Windows 计划任务（每 5 分钟）
 
 ## 细节
 
-- **不碰你的工作区**：提交在 `%LOCALAPPDATA%\ipv6-reporter\repo` 的浅克隆里完成，
-  你本地没提交的改动、没推送的提交都不受影响。代价是本地仓库会落后，写博客前先 `git pull`。
+- **不碰你的工作区**：直接用本仓库，但提交是用 git 底层命令（临时 index + `commit-tree`）
+  基于 `origin/master` 生成的，只改 `ipv6/data.json`，然后直接推到远端。
+  工作区、暂存区、HEAD、本地分支都不动，你没提交的改动、没推送的提交（比如写了一半的文章）不会被带上去。
+  代价是本地 master 会落后，写博客前先 `git pull`（会是快进）。
 - **只在变化时提交**：比对主 IPv6、内网 IPv4、主机名、备注；临时 IPv6 地址每天轮换，不参与比对。
   每 24 小时还会跟远端核对一次（防止记录被误删）。
 - **多台机器**：每台机器按 MachineGuid 的哈希区分，各写各的一条；推送冲突会自动重新同步重试。
