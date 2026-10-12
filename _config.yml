@@ -23,6 +23,13 @@ exclude:
   - Gemfile.lock
   - node_modules
   - vendor
+  # ipv6 上报脚本只在本地运行，不发布到站点
+  - ipv6/report-ipv6.ps1
+  - ipv6/install-task.ps1
+  - ipv6/uninstall-task.ps1
+  - ipv6/config.json
+  - ipv6/config.example.json
+  - ipv6/README.md
 
 defaults:
   - scope:

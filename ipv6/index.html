@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>IPv6 地址</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .v6 { padding-top: 40px; padding-bottom: 60px; }
+    .v6 h1 { font-size: 24px; margin: 0 0 4px; }
+    .v6-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+    .v6-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+               padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .v6-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .v6-name { font-weight: 600; font-size: 17px; }
+    .v6-age { color: var(--muted); font-size: 12px; }
+    .v6-iprow { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .v6-ip { font-family: var(--font-mono); font-size: 15px; background: var(--code-bg); color: var(--code-text);
+             padding: 6px 10px; border-radius: 6px; user-select: all; word-break: break-all; flex: 1 1 auto; }
+    .v6-copy { font: inherit; font-size: 13px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+               border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+    .v6-copy:hover { border-color: var(--accent); color: var(--accent); }
+    .v6-note { margin-top: 8px; font-size: 13px; color: var(--text-2); }
+    .v6-meta { margin-top: 10px; font-size: 12px; color: var(--muted); display: flex; gap: 6px 18px; flex-wrap: wrap; }
+    .v6-alt { margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--font-mono); word-break: break-all; line-height: 1.7; }
+    .v6-empty { color: var(--muted); text-align: center; padding: 40px 18px; }
+    .v6-foot { color: var(--muted); font-size: 12px; margin-top: 24px; line-height: 1.8; }
+    .v6-foot code { font-family: var(--font-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+    .v6-lock { display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+    .v6-lock input[type=password] { font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 6px;
+               border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+    .v6-lock input[type=password]:focus { outline: none; border-color: var(--accent); }
+    .v6-lock label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .v6-lock .v6-btn { font: inherit; font-size: 14px; padding: 8px 0; border: 0; border-radius: 6px; cursor: pointer;
+               background: var(--accent); color: #fff; }
+    .v6-lock .v6-btn:hover { background: var(--accent-2); }
+    .v6-err { color: #d14343; font-size: 13px; min-height: 1.2em; }
+    .v6-logout { font: inherit; font-size: 12px; background: none; border: 0; padding: 0; cursor: pointer;
+                 color: var(--muted); text-decoration: underline; }
+  </style>
+</head>
+<body>
+<main class="wrap v6">
+  <h1>IPv6 地址</h1>
+  <div class="v6-sub" id="sub">加载中…</div>
+  <form class="v6-card v6-lock" id="lock" hidden>
+    <div>数据已加密，输入密码后在本地解密查看。</div>
+    <input type="password" id="pw" placeholder="密码" autocomplete="current-password" required>
+    <label><input type="checkbox" id="remember"> 在这台设备上记住密码</label>
+    <button class="v6-btn" type="submit">解锁</button>
+    <div class="v6-err" id="err"></div>
+  </form>
+  <div id="list"></div>
+  <div class="v6-foot">
+    地址由各机器上的 <code>ipv6/report-ipv6.ps1</code> 检测到变化后加密提交到仓库，GitHub Pages 部署通常有 1~2 分钟延迟。<br>
+    解密只在浏览器本地进行，密码不会发送到任何地方 · 页面每 60 秒自动刷新
+    · <button class="v6-logout" id="logout" type="button" hidden>锁定并忘记密码</button>
+  </div>
+</main>
+<script>
+(function () {
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function ago(iso) {
+    var t = Date.parse(iso);
+    if (!t) return '-';
+    var d = Math.max(0, (Date.now() - t) / 1000);
+    if (d < 60) return Math.floor(d) + ' 秒前';
+    if (d < 3600) return Math.floor(d / 60) + ' 分钟前';
+    if (d < 86400) return Math.floor(d / 3600) + ' 小时前';
+    return Math.floor(d / 86400) + ' 天前';
+  }
+
+  function short(iso) { return iso ? String(iso).replace('T', ' ').slice(0, 16) : '-'; }
+
+  function render(data) {
+    var hosts = (data && data.hosts) || [];
+    document.getElementById('sub').textContent =
+      '共 ' + hosts.length + ' 台主机 · 最近一次更新 ' + (data.updated_at ? ago(data.updated_at) : '-');
+
+    if (!hosts.length) {
+      document.getElementById('list').innerHTML =
+        '<div class="v6-card v6-empty">还没有机器上报。在机器上运行 ipv6/install-task.ps1 即可开始。</div>';
+      return;
+    }
+
+    var html = hosts.map(function (h) {
+      var others = (h.ipv6_all || []).filter(function (ip) { return ip !== h.ipv6_primary; });
+      var hist = (h.history || []).slice(1);
+      var p = [];
+      p.push('<div class="v6-card">');
+      p.push('<div class="v6-head"><span class="v6-name">' + esc(h.host_name || h.id) + '</span>');
+      p.push('<span class="v6-age">地址于 ' + esc(ago(h.changed_at)) + '变更</span></div>');
+      p.push('<div class="v6-iprow"><div class="v6-ip">' + esc(h.ipv6_primary || '（无 IPv6）') + '</div>');
+      if (h.ipv6_primary) {
+        p.push('<button class="v6-copy" data-ip="' + esc(h.ipv6_primary) + '">复制</button>');
+      }
+      p.push('</div>');
+      if (h.note) p.push('<div class="v6-note">备注：' + esc(h.note) + '</div>');
+      if (others.length) p.push('<div class="v6-alt">其他地址：' + others.map(esc).join(' · ') + '</div>');
+      p.push('<div class="v6-meta">');
+      p.push('<span>内网 IPv4 ' + esc(h.ipv4_local || '-') + '</span>');
+      p.push('<span>系统 ' + esc(h.os_info || '-') + '</span>');
+      p.push('<span>变更时间 ' + esc(short(h.changed_at)) + '</span>');
+      p.push('<span>首次 ' + esc(short(h.first_seen)) + '</span>');
+      p.push('</div>');
+      if (hist.length) {
+        p.push('<div class="v6-alt">历史地址：' + hist.map(function (x) {
+          return esc(x.ipv6) + ' <span style="opacity:.6">(' + esc(short(x.at).slice(5)) + ')</span>';
+        }).join('<br>') + '</div>');
+      }
+      p.push('</div>');
+      return p.join('');
+    });
+    document.getElementById('list').innerHTML = html.join('');
+  }
+
+  // ---------------------------------------------------------------- 解密
+  // 与 report-ipv6.ps1 对应：PBKDF2-SHA256 派生 64 字节，前 32 字节 AES-256-CBC，后 32 字节 HMAC-SHA256，
+  // MAC 覆盖 iv + 密文。先验 MAC 再解密，MAC 不对就是密码错误。
+  var STORE_KEY = 'ipv6-password';
+  var subtle = window.crypto && window.crypto.subtle;
+  var password = '';
+  try { password = localStorage.getItem(STORE_KEY) || ''; } catch (e) {}
+
+  function b64(s) {
+    var bin = atob(s), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function WrongPassword() {}
+
+  function decrypt(box, pw) {
+    var salt = b64(box.salt), iv = b64(box.iv), ct = b64(box.ct), mac = b64(box.mac);
+    var signed = new Uint8Array(iv.length + ct.length);
+    signed.set(iv, 0); signed.set(ct, iv.length);
+    var encKey, macKey;
+    return subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits'])
+      .then(function (base) {
+        return subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: box.iter }, base, 512);
+      })
+      .then(function (bits) {
+        bits = new Uint8Array(bits);
+        return Promise.all([
+          subtle.importKey('raw', bits.slice(0, 32), 'AES-CBC', false, ['decrypt']),
+          subtle.importKey('raw', bits.slice(32), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
+        ]);
+      })
+      .then(function (keys) {
+        encKey = keys[0]; macKey = keys[1];
+        return subtle.verify('HMAC', macKey, mac, signed);
+      })
+      .then(function (ok) {
+        if (!ok) throw new WrongPassword();
+        return subtle.decrypt({ name: 'AES-CBC', iv: iv }, encKey, ct);
+      })
+      .then(function (plain) { return JSON.parse(new TextDecoder().decode(plain)); });
+  }
+
+  var lockForm = document.getElementById('lock');
+  var lastBox = null;
+
+  function showLock(msg) {
+    lockForm.hidden = false;
+    document.getElementById('list').innerHTML = '';
+    document.getElementById('logout').hidden = true;
+    document.getElementById('sub').textContent = '已加密';
+    document.getElementById('err').textContent = msg || '';
+    document.getElementById('pw').focus();
+  }
+
+  function open(box) {
+    if (!box.ct) { render(box); return Promise.resolve(); }  // 尚无任何上报时是未加密的空文件
+    if (!subtle) { showLock('当前浏览器不支持 WebCrypto（需要 HTTPS），无法解密'); return Promise.resolve(); }
+    if (!password) { if (lockForm.hidden) showLock(); return Promise.resolve(); }  // 定时刷新时别打断正在输入的密码
+    return decrypt(box, password).then(function (data) {
+      lockForm.hidden = true;
+      document.getElementById('logout').hidden = false;
+      render(data);
+    }, function (e) {
+      if (!(e instanceof WrongPassword)) throw e;
+      password = '';
+      try { localStorage.removeItem(STORE_KEY); } catch (x) {}
+      showLock('密码错误');
+    });
+  }
+
+  lockForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!lastBox) return;
+    password = document.getElementById('pw').value;
+    document.getElementById('err').textContent = '解密中…';
+    open(lastBox).then(function () {
+      if (password && document.getElementById('remember').checked) {
+        try { localStorage.setItem(STORE_KEY, password); } catch (x) {}
+      }
+      document.getElementById('pw').value = '';
+    });
+  });
+
+  document.getElementById('logout').addEventListener('click', function () {
+    password = '';
+    try { localStorage.removeItem(STORE_KEY); } catch (x) {}
+    showLock();
+  });
+
+  function load() {
+    // 带时间戳绕过 GitHub Pages 的 CDN 缓存（默认缓存 10 分钟）
+    fetch('data.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (box) { lastBox = box; return open(box); })
+      ['catch'](function (e) { document.getElementById('sub').textContent = '加载失败：' + e.message; });
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.v6-copy');
+    if (!b) return;
+    navigator.clipboard.writeText(b.dataset.ip).then(function () {
+      b.textContent = '已复制';
+      setTimeout(function () { b.textContent = '复制'; }, 1500);
+    });
+  });
+
+  load();
+  setInterval(load, 60000);
+})();
+</script>
+</body>
+</html>
