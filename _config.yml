@@ -30,6 +30,7 @@ exclude:
   - ipv6/config.json
   - ipv6/config.example.json
   - ipv6/README.md
+  - ipv6/report-ipv6.bat
 
 defaults:
   - scope:

@@ -18,6 +18,7 @@ Windows 计划任务（每 5 分钟）
 | `index.html` | 展示页，读取 `data.json` 渲染，60 秒自动刷新 |
 | `data.json` | 加密后的上报数据，由脚本维护，不要手改 |
 | `report-ipv6.ps1` | 检测并上报 |
+| `report-ipv6.bat` | 双击入口：首次运行自动安装，之后手动上报一次 |
 | `install-task.ps1` / `uninstall-task.ps1` | 注册 / 卸载计划任务 |
 | `config.example.json` | 配置模板；`config.json`（含密码，不入库）由 install-task.ps1 首次运行时生成 |
 
@@ -25,18 +26,16 @@ Windows 计划任务（每 5 分钟）
 
 前提：这台机器已经能 `git push` 这个仓库（SSH 密钥不能带口令，后台任务没法输入）。
 
-管理员 PowerShell（首次会提示设置加密密码，写入本目录的 `config.json`，不入库）：
+**双击 `report-ipv6.bat`** 就行：
 
-```powershell
-cd D:\djj\web\djj20115502.github.io\ipv6
-powershell -ExecutionPolicy Bypass -File .\install-task.ps1                 # 默认每 5 分钟检测
-powershell -ExecutionPolicy Bypass -File .\install-task.ps1 -IntervalMinutes 10
-```
+- 首次运行：弹出 UAC 确认 → 设置加密密码（写入本目录 `config.json`，不入库）→ 注册计划任务 → 立即上报一次。
+  之后**每次开机自动运行**，并且每 5 分钟检测一次。
+- 已安装后再双击：手动上报一次（不用等下一个 5 分钟）。
+- 挪了仓库位置或想改间隔：`report-ipv6.bat --install` 重新安装，
+  或管理员 PowerShell 里 `.\install-task.ps1 -IntervalMinutes 10`。
 
 任务以当前用户身份（S4U）运行：不弹窗、不需要登录，能用到你的 git 配置和 SSH 密钥。
 脚本记录的是本目录的路径，装好后别挪动仓库。
-
-手动跑一次：`powershell -ExecutionPolicy Bypass -File .\report-ipv6.ps1 -Force`
 
 ## 细节
 
