@@ -1,4 +1,9 @@
 {
-  "updated_at": "",
-  "hosts": []
+    "v":  1,
+    "alg":  "PBKDF2-SHA256 / AES-256-CBC / HMAC-SHA256",
+    "iter":  200000,
+    "salt":  "RvwqNGKMrtGPQWJD6XXb3w==",
+    "iv":  "s7G3UF47zouLmaJ74yxwHw==",
+    "ct":  "OKcPPqhOURPJdxYuCmrLfLoH8BOkTQoWX5msCq9fYscZj86td/IQn6D0HR07iUB3iQBqfjZLq8R8+TH7WHvtPCGuQBT5jUkEJvpt10ZcrpAImTK6z42RRkL+zEHf8HdmJEVqehykRIdhuwE7/0Hgi9jDY2zleJ+QiqFL07kENxEToSbFio64z+y2NpwxDgs7g9Gv7PW6iqBveqm7QSJFea7ox9BO2CpicelQRDUOBHkf93x4dSeYvFgZ6DmBHg2blxBkpIYxtm/AY9lHRUz9cg+/3VArtJ+SJtPDDqCPorexHFg/JY0eqc0e9aD3fIAT8mPovD0RFQptbJ1V0w7tJ2qPGkBRfsuYh8x6dgWZoZ+TN4S0WK7p3yUZEFeruYq0bZ/WfSqxQEbiM/vt0FxaOaa1GRI6jDsTi9IqHUB7umttdBzMZaTaG46dfMrXqU2R0qR5Rd+R2HV5NbykRhNdHZuBraI8HisR1EDSbr9hXgyxeez6S3EDxZ1OOOa2F663O8/412rvMQoaIkA2Z9L9DMSR8PJPdrUifeyTR+ZtAs6EmLeoM6rsy1meih5h8OiWwx/SfWvXR66/Mt89AKmIYJBnsN9YEpG0Xhm+olFBkxrwROHFIFLM+fhImjyhZr+qIInl5Rb/ol0eSE8aUEr1ZC2ta8nDkfpeCluG5Cnv4GMkhF7ojJ+4B2dhmtTZQeY8O3+jEc0BsLTfAZ8lMq+AAEuamr+KcTR67hH3LPLgHWc7HdGWKOHG+3yyu0L8qtGa",
+    "mac":  "MGzKsUP6jJMjf6IgISyTdx4iW024WXAmauN4IrNe1oQ="
 }
