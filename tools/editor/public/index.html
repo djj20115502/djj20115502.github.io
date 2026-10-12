@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>博客编辑器</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/editor/vendor/codemirror.min.css">
+  <link rel="stylesheet" href="/editor/editor.css">
+  <script>
+    try { var t = localStorage.getItem('theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+</head>
+<body>
+<div class="ed-app">
+  <header class="ed-top">
+    <div class="ed-brand"><span class="ed-planet"></span>博客编辑器</div>
+    <div class="ed-top-actions">
+      <button class="ed-btn" id="btn-new" title="新建文章 (Ctrl+N)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新建
+      </button>
+      <button class="ed-btn" id="btn-pull" title="从 GitHub 拉取最新内容">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>拉取
+      </button>
+      <button class="ed-btn ed-btn-primary" id="btn-publish" title="提交并推送到 GitHub">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V8M7 13l5-5 5 5M5 4h14"/></svg>发布
+        <span class="ed-badge" id="change-count" hidden>0</span>
+      </button>
+      <button class="ed-icon-btn" id="btn-theme" title="切换深色模式">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <aside class="ed-side">
+    <div class="ed-side-search">
+      <input id="post-search" type="search" placeholder="搜索文章…">
+    </div>
+    <div class="ed-post-list" id="post-list"></div>
+    <div class="ed-side-foot" id="git-branch"></div>
+  </aside>
+
+  <main class="ed-main" id="main">
+    <div class="ed-empty" id="empty-state">
+      <span class="ed-planet big"></span>
+      <h2>选一篇文章开始编辑</h2>
+      <p>或者 <a href="#" id="empty-new">写一篇新文章</a>。图片可以直接粘贴或拖进编辑区。</p>
+      <p class="ed-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd> 保存　<kbd>Ctrl</kbd>+<kbd>N</kbd> 新建　<kbd>Ctrl</kbd>+<kbd>B</kbd> 加粗</p>
+    </div>
+
+    <div class="ed-doc" id="doc" hidden>
+      <div class="ed-meta">
+        <input class="ed-title" id="f-title" placeholder="文章标题" autocomplete="off">
+        <div class="ed-meta-row">
+          <label>分类<input id="f-category" list="category-list" placeholder="如 Android" autocomplete="off"></label>
+          <label>日期<input id="f-date" type="date"></label>
+          <label class="grow">标签<input id="f-tags" placeholder="用逗号分隔" autocomplete="off"></label>
+          <label class="ed-switch" title="草稿不会出现在网站上">
+            <input type="checkbox" id="f-draft"><span></span>草稿
+          </label>
+        </div>
+        <div class="ed-meta-row">
+          <label class="grow">简介<input id="f-intro" placeholder="一句话介绍，显示在列表里" autocomplete="off"></label>
+        </div>
+        <details class="ed-more">
+          <summary>更多设置</summary>
+          <div class="ed-meta-row">
+            <label class="grow">文件名<input id="f-slug" placeholder="默认使用标题" autocomplete="off"></label>
+            <label class="grow">封面图<input id="f-cover" placeholder="图片地址，可留空" autocomplete="off"></label>
+          </div>
+        </details>
+        <datalist id="category-list"></datalist>
+      </div>
+
+      <div class="ed-toolbar" id="toolbar">
+        <div class="ed-tools">
+          <button data-cmd="h2" title="二级标题">H2</button>
+          <button data-cmd="h3" title="三级标题">H3</button>
+          <span class="sep"></span>
+          <button data-cmd="bold" title="加粗 Ctrl+B"><b>B</b></button>
+          <button data-cmd="italic" title="斜体 Ctrl+I"><i>I</i></button>
+          <button data-cmd="code" title="行内代码">`</button>
+          <span class="sep"></span>
+          <button data-cmd="link" title="链接 Ctrl+K">链接</button>
+          <button data-cmd="image" title="插入图片">图片</button>
+          <button data-cmd="codeblock" title="代码块">代码块</button>
+          <button data-cmd="quote" title="引用">引用</button>
+          <button data-cmd="ul" title="无序列表">列表</button>
+          <button data-cmd="table" title="表格">表格</button>
+        </div>
+        <div class="ed-views" role="tablist">
+          <button data-view="edit">编辑</button>
+          <button data-view="split" class="active">分栏</button>
+          <button data-view="preview">预览</button>
+        </div>
+      </div>
+
+      <div class="ed-panes view-split" id="panes">
+        <div class="ed-pane-edit" id="drop-zone">
+          <textarea id="f-body"></textarea>
+          <div class="ed-drop-hint">松开以上传图片</div>
+        </div>
+        <div class="ed-pane-preview">
+          <iframe id="preview" title="预览"></iframe>
+        </div>
+      </div>
+
+      <footer class="ed-status">
+        <span id="st-save" class="ed-st-save">已保存</span>
+        <span id="st-path"></span>
+        <span class="spacer"></span>
+        <span id="st-count"></span>
+        <button class="ed-link-btn danger" id="btn-delete">删除文章</button>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<input type="file" id="file-input" accept="image/*" multiple hidden>
+
+<dialog class="ed-dialog" id="publish-dialog">
+  <form method="dialog" class="ed-dialog-inner" id="publish-form">
+    <h3>发布到 GitHub</h3>
+    <p class="ed-muted" id="pub-branch"></p>
+    <div class="ed-changes" id="pub-files"></div>
+    <label class="ed-field">提交说明<input id="pub-message" autocomplete="off"></label>
+    <label class="ed-check"><input type="checkbox" id="pub-all"> 同时提交站点的其他改动（模板、样式等）</label>
+    <pre class="ed-log" id="pub-log" hidden></pre>
+    <div class="ed-dialog-actions">
+      <button type="button" class="ed-btn" id="pub-cancel">关闭</button>
+      <button type="button" class="ed-btn ed-btn-primary" id="pub-go">提交并推送</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="ed-toast" id="toast" hidden></div>
+
+<script src="/editor/vendor/codemirror.min.js"></script>
+<script src="/editor/vendor/cm-overlay.min.js"></script>
+<script src="/editor/vendor/cm-markdown.min.js"></script>
+<script src="/editor/vendor/cm-gfm.min.js"></script>
+<script src="/editor/vendor/cm-continuelist.min.js"></script>
+<script src="/editor/vendor/marked.min.js"></script>
+<script src="/editor/vendor/highlight.min.js"></script>
+<script src="/editor/editor.js"></script>
+</body>
+</html>

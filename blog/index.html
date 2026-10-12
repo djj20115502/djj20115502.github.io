@@ -1,89 +1,35 @@
 ---
-title: Blog
 layout: default
+title: 文章
 ---
+{% assign cats = '|' %}
+{% for p in site.posts %}{% assign _parts = p.path | split: '/' %}{% if _parts.size > 2 %}{% assign _c = _parts[1] %}{% else %}{% assign _c = '未分类' %}{% endif %}{% assign _key = '|' | append: _c | append: '|' %}{% unless cats contains _key %}{% assign cats = cats | append: _c | append: '|' %}{% endunless %}{% endfor %}
+{% assign cat_list = cats | split: '|' %}
 
-<!-- Main -->
-	<section class="wrapper style1">
-		<div class="container">
-			<div id="content">
-				<div class="row">
-					<div class="12u">
+<section class="wrap page-head">
+  <h1>全部文章</h1>
+  <p>共 {{ site.posts.size }} 篇，按年份归档。</p>
+  <div class="search">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="search" type="search" placeholder="搜索标题、简介或正文…" autocomplete="off">
+  </div>
+  <div class="filters" id="filters">
+    <button type="button" class="chip-btn active" data-cat="">全部</button>
+    {% for c in cat_list %}{% if c != '' %}<button type="button" class="chip-btn" data-cat="{{ c | escape }}">{{ c }}</button>{% endif %}{% endfor %}
+  </div>
+</section>
 
-						<!-- Blog -->
-							<section>
-								<header class="major">
-									<h2>The Blog</h2>
-								</header>
-								<!-- 第一步得到分组 ---s--- -->
-								{%  assign class = "" %}
-							 	{% for pp in site.posts  %}
-                                      {% assign clname = pp.path   | split: '/' %}
- 								    {% if class contains clname[1] %}
-									{% else %}
-									    {% if class =="" %}
-										    {%  assign class =   clname[1] %}
-										{% else %}
-									        {%  assign class = class |  append: "/" |  append: clname[1] %}
-										{% endif %}
-									{% endif %}
- 								{% endfor %}
-								{% assign clname = class | split: '/' %}
-								<!-- 第一步得到分组 ---e--- -->
-								
-			                {% for class in clname %}
-								    <div class="row">
-										<section class="12u">
-											<div class="box post">
- 
-							{%  assign picint = class | size | modulo:10 %}			 
-							{% case picint  %}
-                                {% when 0 %}
-                                    {%  assign pic = site.icon_00 %}
-                                {% when 1 %}
-                                    {%  assign pic = site.icon_01 %}
-                                {% when 2 %}
-                                    {%  assign pic = site.icon_02 %}
-	                            {% when 3 %}
-                                    {%  assign pic = site.icon_03 %}
-						        {% when 4 %}
-                                    {%  assign pic = site.icon_04 %}
-						        {% when 5 %}
-                                    {%  assign pic = site.icon_05 %}
-							    {% when 6 %}
-                                    {%  assign pic = site.icon_06 %}
-							    {% when 7 %}
-                                    {%  assign pic = site.icon_07 %}
-							    {% when 8 %}
-                                    {%  assign pic = site.icon_08 %}
-							    {% when 9 %}
-                                    {%  assign pic = site.icon_09 %}
-								{% else %}
-								    {%  assign pic = site.icon_09 %}
-                            {% endcase %}
- 							 	<h2> {{ class }}</h2>
-
-								<a href="#" class="image left"><img src="{{ pic }}  " alt=""></a>
-												<div class="inner">
-											{% for post in site.posts offset  %}
-								                  {% assign clname = post.path   | split: '/' %}
-									            {% if class == clname[1] %}
-							           	             <h3><a href="{{ site.baseurl }}{{ post.url }}">{{post.title}} </a></h3>
-									            {% endif %}
-									  
-								            {% endfor %}													
-													 
-												</div>
-											</div>
-
-										</section>
-									</div>
-								
-								{% endfor %}
-								
-							</section>
-
-					</div>
-				</div>
-		</div>
-	</section>
+<section class="wrap archive" id="archive" data-search-index="{{ site.baseurl }}/search.json">
+  {% assign prev_year = '' %}
+  {% for post in site.posts %}
+    {% assign y = post.date | date: '%Y' %}
+    {% if y != prev_year %}
+      {% unless forloop.first %}</ul></div>{% endunless %}
+      <div class="year-group"><h2 class="year">{{ y }}</h2><ul class="post-list">
+      {% assign prev_year = y %}
+    {% endif %}
+    {% include post-item.html post=post %}
+    {% if forloop.last %}</ul></div>{% endif %}
+  {% endfor %}
+  <p class="empty" id="empty" hidden>没有找到匹配的文章。</p>
+</section>

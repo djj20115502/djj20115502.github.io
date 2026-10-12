@@ -1,99 +1,45 @@
 ---
-title: Arcana
 layout: default
+title: 首页
 ---
-			
-<!-- Banner -->
-	<section id="banner"  >
-		<header>
-			<h2>Jupiter: <em>The most beautiful planet in addition to the earth  <a href="https://en.wikipedia.org/wiki/Jupiter">wiki</a></em></h2>
-			<!-- <a href="http://jekyll.com.cn/" class="button">Jekyll</a> -->
-		</header>
-	</section>
- 
-<!-- Highlights -->
-	<section class="wrapper style1">
-		<div class="container">
-			<div class="row double">
-				<section class="4u">
-					<div class="box highlight">
-						<i class="icon major fa-paper-plane"></i>
-						<h3>This Is Important</h3>
-						<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-					</div>
-				</section>
-				<section class="4u">
-					<div class="box highlight">
-						<i class="icon major fa-pencil"></i>
-						<h3>Also Important</h3>
-						<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-					</div>
-				</section>
-				<section class="4u">
-					<div class="box highlight">
-						<i class="icon major fa-wrench"></i>
-						<h3>Probably Important</h3>
-						<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-					</div>
-				</section>
-			</div>
-		</div>
-	</section>
+{% assign cats = '|' %}{% assign cat_count = 0 %}
+{% for p in site.posts %}{% assign _parts = p.path | split: '/' %}{% if _parts.size > 2 %}{% assign _c = _parts[1] %}{% else %}{% assign _c = '未分类' %}{% endif %}{% assign _key = '|' | append: _c | append: '|' %}{% unless cats contains _key %}{% assign cats = cats | append: _c | append: '|' %}{% assign cat_count = cat_count | plus: 1 %}{% endunless %}{% endfor %}
+{% assign cat_list = cats | split: '|' %}
 
-<!-- Gigantic Heading -->
-	<section class="wrapper style2">
-		<div class="container">
-			<header class="major">
-				<h2>A gigantic heading you can use for whatever</h2>
-				<p>With a much smaller subtitle hanging out just below it</p>
-			</header>
-		</div>
-	</section>
+<section class="hero wrap">
+  <div class="hero-planet" aria-hidden="true"><span></span></div>
+  <div>
+    <p class="eyebrow">Hi, I'm {{ site.author }}</p>
+    <h1 class="hero-title">{{ site.title }}</h1>
+    <p class="hero-desc">{{ site.description }}</p>
+    <div class="hero-stats">
+      <span><strong>{{ site.posts.size }}</strong> 篇文章</span>
+      <span><strong>{{ cat_count }}</strong> 个分类</span>
+    </div>
+  </div>
+</section>
 
-<!-- Posts -->
-	<section class="wrapper style1">
-		<div class="container">
-			<div class="row">
-				<section class="6u">
-					<div class="box post">
-						<a href="#" class="image left"><img src="{{ site.icon_01 }}" alt="" /></a>
-						<div class="inner">
-							<h3>The First Thing</h3>
-							<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-						</div>
-					</div>
-				</section>
-				<section class="6u">
-					<div class="box post">
-						<a href="#" class="image left"><img src="{{ site.icon_02 }}" alt="" /></a>
-						<div class="inner">
-							<h3>The Second Thing</h3>
-							<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-						</div>
-					</div>
-				</section>
-			</div>
-			<div class="row">
-				<section class="6u">
-					<div class="box post">
-						<a href="#" class="image left"><img src="{{ site.icon_03 }}" alt="" /></a>
-						<div class="inner">
-							<h3>The Third Thing</h3>
-							<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-						</div>
-					</div>
-				</section>
-				<section class="6u">
-					<div class="box post">
-						<a href="#" class="image left"><img src="{{ site.icon_04 }}" alt="" /></a>
-						<div class="inner">
-							<h3>The Fourth Thing</h3>
-							<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-						</div>
-					</div>
-				</section>
-			</div>
-		</div>
-	</section>
-	
-	{% include cta.html %}
+<section class="wrap section">
+  <div class="section-head">
+    <h2>最近更新</h2>
+    <a class="more" href="{{ site.baseurl }}/blog/">全部文章 →</a>
+  </div>
+  <ul class="post-list">
+    {% for post in site.posts limit: 8 %}{% include post-item.html post=post %}{% endfor %}
+  </ul>
+</section>
+
+<section class="wrap section">
+  <div class="section-head"><h2>分类</h2></div>
+  <div class="cat-grid">
+    {% for c in cat_list %}{% if c != '' %}
+    {% assign n = 0 %}{% assign latest = nil %}
+    {% for p in site.posts %}{% assign _parts = p.path | split: '/' %}{% if _parts.size > 2 %}{% assign _c = _parts[1] %}{% else %}{% assign _c = '未分类' %}{% endif %}{% if _c == c %}{% assign n = n | plus: 1 %}{% unless latest %}{% assign latest = p %}{% endunless %}{% endif %}{% endfor %}
+    <a class="cat-card" href="{{ site.baseurl }}/blog/#{{ c | uri_escape }}">
+      <span class="cat-name">{{ c }}</span>
+      <span class="cat-count">{{ n }} 篇</span>
+      <span class="cat-latest">最新：{{ latest.title }}</span>
+    </a>
+    {% endif %}{% endfor %}
+  </div>
+</section>

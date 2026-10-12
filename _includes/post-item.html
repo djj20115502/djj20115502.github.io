@@ -1,0 +1,9 @@
+{% assign _parts = include.post.path | split: '/' %}{% if _parts.size > 2 %}{% assign _cat = _parts[1] %}{% else %}{% assign _cat = '未分类' %}{% endif %}
+<li class="post-item" data-cat="{{ _cat | escape }}" data-url="{{ site.baseurl }}{{ include.post.url }}">
+  <time datetime="{{ include.post.date | date: '%Y-%m-%d' }}">{{ include.post.date | date: '%m-%d' }}</time>
+  <div class="post-item-main">
+    <a class="post-item-title" href="{{ site.baseurl }}{{ include.post.url }}">{{ include.post.title }}</a>
+    {% if include.post.intro %}<p class="post-item-intro">{{ include.post.intro }}</p>{% endif %}
+  </div>
+  <span class="chip">{{ _cat }}</span>
+</li>
