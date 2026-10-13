@@ -32,6 +32,9 @@ if (-not $appData) { $appData = [Environment]::GetFolderPath('LocalApplicationDa
 $stateDir  = Join-Path $appData 'ipv6-reporter'
 $stateFile = Join-Path $stateDir 'state.json'
 $logFile   = Join-Path $stateDir 'report.log'
+# 别的程序登记的访问链接（如 AI_GAME 网页遥控），随本机记录一起加密上报。放在仓库外：链接里可能带 token。
+# 格式：{"links":[{"source":"webremote","label":"网页遥控 IPv6","url":"http://...","at":"..."}]}
+$linksFile = Join-Path $stateDir 'links.json'
 if (-not (Test-Path $stateDir)) { New-Item -ItemType Directory -Path $stateDir -Force | Out-Null }
 
 $utf8NoBom = New-Object Text.UTF8Encoding $false
@@ -239,6 +242,26 @@ function New-DataCommit {
     return (Invoke-Git -C $sourceRepo commit-tree $tree -p $Base -m 'ipv6: update' | Select-Object -First 1).Trim()
 }
 
+# 读别的程序登记的访问链接（links.json）；没有 / 坏了 → 空（不因此影响地址上报）
+function Get-Links {
+    if (-not (Test-Path $linksFile)) { return @() }
+    try {
+        $j = Get-Content $linksFile -Raw -Encoding utf8 | ConvertFrom-Json
+        return @(@($j.links) | Where-Object { $_ -and $_.url } | ForEach-Object {
+            [ordered]@{ source = [string]$_.source; label = [string]$_.label; url = [string]$_.url }
+        })
+    } catch {
+        Write-Log "links.json 读不了，本次不带链接：$($_.Exception.Message)" 'WARN'
+        return @()
+    }
+}
+
+# 链接列表的比对键（顺序敏感：登记方给的顺序就是展示顺序）
+function Get-LinksKey {
+    param($Links)
+    return (@($Links) | Where-Object { $_ } | ForEach-Object { '{0}|{1}|{2}' -f $_.source, $_.label, $_.url }) -join "`n"
+}
+
 # 把本机这条记录写进 data.json；内容没变返回 $false
 function Update-DataFile {
     param([string]$Path, [hashtable]$Report, [string]$Password)
@@ -262,7 +285,8 @@ function Update-DataFile {
     $old = if ($idx -ge 0) { $list[$idx] } else { $null }
 
     $ipChanged = (-not $old) -or ($old.ipv6_primary -ne $Report.ipv6_primary)
-    if (-not $ipChanged -and
+    $linksSame = (Get-LinksKey $(if ($old) { $old.links } else { @() })) -eq (Get-LinksKey $Report.links)
+    if (-not $ipChanged -and $linksSame -and
         $old.ipv4_local -eq $Report.ipv4_local -and
         $old.host_name -eq $Report.host_name -and
         $old.note -eq $Report.note) {
@@ -283,6 +307,8 @@ function Update-DataFile {
         ipv4_local   = $Report.ipv4_local
         os_info      = $Report.os_info
         note         = $Report.note
+        links        = @($Report.links)
+        links_at     = $(if ($linksSame -and $old -and $old.links_at) { $old.links_at } elseif (@($Report.links).Count) { $ts } else { '' })
         first_seen   = $(if ($old -and $old.first_seen) { $old.first_seen } else { $ts })
         changed_at   = $(if ($ipChanged -or -not $old.changed_at) { $ts } else { $old.changed_at })
         updated_at   = $ts
@@ -327,6 +353,7 @@ $report = @{
     ipv4_local   = Get-LocalIPv4 -PreferInterfaceIndex $v6[0].InterfaceIndex
     os_info      = $osInfo
     note         = $note
+    links        = @(Get-Links)
 }
 
 # 2. 跟上次成功上报的结果比对，没变就直接结束（不联网）
@@ -334,7 +361,8 @@ $state = $null
 if (Test-Path $stateFile) {
     try { $state = Get-Content $stateFile -Raw -Encoding utf8 | ConvertFrom-Json } catch { }
 }
-$fingerprint = '{0}|{1}|{2}|{3}' -f $report.ipv6_primary, $report.ipv4_local, $report.host_name, $report.note
+$fingerprint = '{0}|{1}|{2}|{3}|{4}' -f $report.ipv6_primary, $report.ipv4_local, $report.host_name, $report.note,
+    (Get-LinksKey $report.links)
 $recentlyChecked = $false
 if ($state -and $state.checked_at) {
     try { $recentlyChecked = ((Get-Date) - [datetime]$state.checked_at).TotalHours -lt 24 } catch { }
