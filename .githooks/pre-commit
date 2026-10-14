@@ -1,0 +1,7 @@
+#!/bin/sh
+# 提交里改了 ipv6/index.html 时，把页脚「页面修改于」更新成当前时间（本机时间）
+f=ipv6/index.html
+if git diff --cached --name-only | grep -qx "$f"; then
+  t=$(date "+%Y-%m-%d %H:%M")
+  sed -i "s|<span id=\"page-mtime\">[^<]*</span>|<span id=\"page-mtime\">$t</span>|" "$f" && git add "$f"
+fi

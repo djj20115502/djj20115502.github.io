@@ -83,3 +83,12 @@ Windows 计划任务（每 5 分钟）
 - 换密码：所有机器的 `config.json` 一起改，然后任意一台运行 `report-ipv6.ps1 -Force`。
   注意旧密码加密的数据会解不开，需先删掉远端 `data.json` 里的密文（改回 `{"updated_at":"","hosts":[]}`）再上报。
 - 网页上勾选「记住密码」会把密码明文存在该浏览器的 localStorage 里，只在自己的设备上勾。
+
+## 页面修改时间
+
+页脚的「页面修改于」由仓库里的 `.githooks/pre-commit` 在提交时自动写入：提交里改了 `ipv6/index.html` 才更新，取本机时间。
+钩子不会自动生效，新克隆仓库后执行一次：
+
+```
+git config core.hooksPath .githooks
+```
